@@ -1,6 +1,11 @@
-require("dotenv").config() // paqute para crear variables de entorno
+require("dotenv").config(); // paqute para crear variables de entorno
 
-const { inquirerMenu, pausa, leerInput } = require("./helpers/inquirer");
+const {
+  inquirerMenu,
+  pausa,
+  leerInput,
+  listarLugares,
+} = require("./helpers/inquirer");
 const Busquedas = require("./models/busquedas");
 
 //console.log(process.env);  accediendo a las variables de entorno
@@ -13,25 +18,42 @@ const main = async () => {
     opt = await inquirerMenu();
 
     switch (opt) {
-      
       case 1:
-        const lugar = await leerInput("Ciudad:");
-        await busquedas.ciudad(lugar);
+        // Mostrar mensaje
+        const lugarBusqueda = await leerInput("Ciudad:");
 
         // buscar los lugares
+        const lugares = await busquedas.ciudad(lugarBusqueda);
 
         // seleccionar el lugar
+        const id = await listarLugares(lugares);
+        if (id === "0") continue;
+
+        const lugarSel = lugares.find((lugar) => lugar.id === id);
+
+        // Guardar en la db
+        busquedas.agregarHistorial(lugarSel.nombre);
+
+        // console.log(lugarSel)
 
         //clima
+        const clima = await busquedas.climaLugar(lugarSel.lat, lugarSel.lng);
 
         //Mostrar Resultados
         console.log("\nInformacion de la ciudad\n".green);
-        console.log("Ciudad: ");
-        console.log("Lat: ");
-        console.log("Lng: ");
-        console.log("Tempreatura: ");
-        console.log("Minima: ");
-        console.log("Maxima: \n");
+        console.log("Ciudad: ", lugarSel.nombre.green);
+        console.log("Lat: ", lugarSel.lat);
+        console.log("Lng: ", lugarSel.lng);
+        console.log("Tempreatura: ", clima.temp);
+        console.log("Minima: ", clima.min);
+        console.log("Maxima: ", clima.max);
+        console.log("como esta el clima: ", clima.decs.green);
+        break;
+      case 2:
+      busquedas.historialCapitalizado.forEach((lugar, i) => {
+        const idx = `${i + 1}.`.green;
+        console.log(`${idx} ${lugar}`)
+      })
         break;
     }
 
